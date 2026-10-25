@@ -8,11 +8,9 @@ Windows optimization suite for gaming and privacy.
 
 ## Supported Windows
 
-Windows 10 22H2 (19045) and Windows 11 23H2 (22631), 25H2 (26200), 26H2 (26300). Windows 11 24H2 is not supported. AME Wizard refuses every build outside this list; `Playbook/playbook.conf` is the source of truth.
+Windows 10 22H2 (19045) and Windows 11 23H2 (22631), 25H2 (26200), 26H2 (26300).
 
 ## Installing
-
-Releases are posted on the [XOS Discord](https://discord.gg/XTYEjZNPgX). This repository is source only.
 
 1. Get [AME Wizard](https://ameliorated.io). XOS is tested on Beta 0.8.4.
 2. Drag the newest `XOS V<version>.apbx` into AME Wizard.
@@ -24,8 +22,6 @@ XOS changes system files and settings. Use it on an installation you can afford 
 Uninstall is on the Toolkit's Troubleshooting page. It restores Windows defaults, not your previous configuration, and removed Store apps have to be reinstalled by hand.
 
 ## Building
-
-Toolkit: install .NET SDK 8.0 and Inno Setup 6 (default `Program Files (x86)` location), then run `dotnet build -c Release` in `Toolkit/`. The installer lands in `Toolkit/bin/Installer/XOS-Toolkit-Setup.exe`. Copy it to `Playbook/Executables/` so a playbook run installs it.
 
 These third-party files are not in the repository:
 
