@@ -35,7 +35,7 @@ Pack the playbook by zipping the contents of `Playbook/` (not the folder itself)
 
 ## Credits
 
-AME Wizard by [Ameliorated](https://ameliorated.io). MinSudo from NanaRun by M2Team (MIT). 
-`DefenderOFF.ps1` is based on LeanAndMean by AveYo (MIT). 
-Nvidia Profile Inspector by Orbmu2k. 
-Chocolatey and the Open-Shell Fluent-Metro skins keep their own licences.
+- AME Wizard by [Ameliorated](https://ameliorated.io). MinSudo from NanaRun by M2Team (MIT). 
+- `DefenderOFF.ps1` is based on LeanAndMean by AveYo (MIT). 
+- Nvidia Profile Inspector by Orbmu2k. 
+- Chocolatey and the Open-Shell Fluent-Metro skins keep their own licences.
