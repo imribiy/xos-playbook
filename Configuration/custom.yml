@@ -32,7 +32,7 @@ actions:
         powercfg /x hibernate-timeout-ac 0;
 
   - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value: 'Manufacturer', type: REG_SZ, data: 'XOS'}
-  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value: 'SupportURL', type: REG_SZ, data: 'https://discord.gg/XTYEjZNPgX'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value: 'SupportURL', type: REG_SZ, data: 'https://github.com/imribiy/XOS'}
 
   - !powerShell: {command: '.\SetWallpaper.ps1 -Mode Desktop -ImagePath $env:systemroot\Web\Wallpaper\XOS\img0.jpg', exeDir: true, wait: true, runas: currentUserElevated, option: 'change-wallpaper'}
   - !powerShell: {command: '.\SetWallpaper.ps1 -Mode LockScreen -ImagePath $env:systemroot\Web\Wallpaper\XOS\img0.jpg', exeDir: true, wait: true, runas: currentUserElevated, option: 'change-wallpaper'}
