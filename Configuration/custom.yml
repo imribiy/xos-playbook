@@ -830,7 +830,7 @@ actions:
   - !run: {exe: 'bcdedit.exe', args: '/set bootmenupolicy legacy',    wait: true, showOutput: false, showError: false}
   - !run: {exe: 'bcdedit.exe', args: '/timeout 10',                   wait: true, showOutput: false, showError: false}
   - !cmd: {command: 'label %SystemDrive% XOS', wait: true, runas: trustedInstaller}
-  - !run: {exe: 'bcdedit.exe', args: '/set {current} description "XOS-Playbook-V0.799"', wait: true, showOutput: false, showError: false}
+  - !run: {exe: 'bcdedit.exe', args: '/set {current} description "XOS-Playbook-V0.802"', wait: true, showOutput: false, showError: false}
 
   - !writeStatus: {status: 'Disabling DMA Remapping'}
   - !powerShell:
@@ -1323,7 +1323,7 @@ actions:
       runas: currentUserElevated
       command: >-
         $b=[int](Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion').CurrentBuildNumber;
-        if($b -ge 26100){exit 0};
+        if($b -ge 26200){exit 0};
         $p='HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications\MicrosoftWindows.Client.CBS_cw5n1h2txyewy';
         if(-not(Test-Path $p)){New-Item $p -Force|Out-Null};
          Set-ItemProperty $p -Name 'Disabled' -Value 1 -Force;
