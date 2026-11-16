@@ -830,7 +830,7 @@ actions:
   - !run: {exe: 'bcdedit.exe', args: '/set bootmenupolicy legacy',    wait: true, showOutput: false, showError: false}
   - !run: {exe: 'bcdedit.exe', args: '/timeout 10',                   wait: true, showOutput: false, showError: false}
   - !cmd: {command: 'label %SystemDrive% XOS', wait: true, runas: trustedInstaller}
-  - !run: {exe: 'bcdedit.exe', args: '/set {current} description "XOS-Playbook-V0.805"', wait: true, showOutput: false, showError: false}
+  - !run: {exe: 'bcdedit.exe', args: '/set {current} description "XOS-Playbook-V0.806"', wait: true, showOutput: false, showError: false}
 
   - !writeStatus: {status: 'Disabling DMA Remapping'}
   - !powerShell:
@@ -948,6 +948,22 @@ actions:
       args: '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TASKS="desktopicon,startmenuicon"'
       wait: true
       runas: currentUserElevated
+  - !powerShell:
+      wait: true
+      exeDir: true
+      command: >-
+        try {
+          $pf = if ($env:ProgramW6432) { $env:ProgramW6432 } else { $env:ProgramFiles };
+          $dir = Join-Path $pf 'XSudo';
+          $exe = Join-Path $dir 'XSudo.exe';
+          New-Item -ItemType Directory -Force -Path $dir -ErrorAction Stop | Out-Null;
+          Remove-Item -LiteralPath ($exe + '.old') -Force -ErrorAction SilentlyContinue;
+          if (Test-Path -LiteralPath $exe) { try { Remove-Item -LiteralPath $exe -Force -ErrorAction Stop } catch { Rename-Item -LiteralPath $exe -NewName 'XSudo.exe.old' -ErrorAction Stop } };
+          Copy-Item -LiteralPath '.\XSudo.exe' -Destination $exe -Force -ErrorAction Stop;
+          $wsh = New-Object -ComObject WScript.Shell;
+          $lnk = $wsh.CreateShortcut((Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\XSudo.lnk'));
+          $lnk.TargetPath = $exe; $lnk.WorkingDirectory = $dir; $lnk.IconLocation = $exe + ',0'; $lnk.WindowStyle = 7; $lnk.Description = 'Run programs as TrustedInstaller'; $lnk.Save()
+        } catch { Write-Output ('FAILED XSudo install: ' + $_.Exception.Message) }
 
   - !writeStatus: {status: 'Applying Device-Specific Settings'}
   - !service: {name: 'bam', operation: change, startup: 3}
