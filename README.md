@@ -25,7 +25,7 @@ To uninstall, use the Troubleshooting page in XOS Toolkit. It restores Windows d
 
 - `playbook.conf`: playbook metadata and the options shown in AME Wizard.
 - `Configuration/custom.yml`: every action the playbook runs.
-- `Executables/`: helper scripts the actions call, and the XOS wallpaper.
+- `Executables/`: helper scripts the actions call, `XSudo.exe` (the elevation helper), and the XOS wallpaper.
 
 ## Building
 
@@ -33,7 +33,6 @@ These files are not in the repository. Add them before packing:
 
 | File | Source | Put it in |
 |---|---|---|
-| `MinSudo.exe` | [NanaRun](https://github.com/M2Team/NanaRun) | `Executables/` |
 | `XOS-Toolkit-Setup.exe` | Built from [xos-toolkit](https://github.com/imribiy/xos-toolkit), or taken from a release | `Executables/` |
 
 Zip the contents of the repository (not the folder itself, and without `.git`, `.gitignore`, `README.md` or `LICENSE`) into `XOS V<version>.apbx` with the password `malte`, the AME Wizard default. AME Wizard opens that archive directly.
@@ -45,5 +44,5 @@ Copyright (c) 2026 XOS (imribiy). Licensed under [CC BY-NC-ND 4.0](LICENSE): you
 ## Credits
 
 - AME Wizard by [Ameliorated](https://ameliorated.io).
-- MinSudo from [NanaRun](https://github.com/M2Team/NanaRun) by M2Team (MIT).
+- `Executables/XSudo.exe` is XSudo, the elevation helper, part of XOS; its source is in [xos-toolkit](https://github.com/imribiy/xos-toolkit) under `XSudo/`.
 - `DefenderOFF.ps1` is based on LeanAndMean by AveYo (MIT).

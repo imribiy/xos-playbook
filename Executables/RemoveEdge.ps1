@@ -339,8 +339,8 @@ function Invoke-WebView2Fallback {
 
 function Run-AsTrustedInstaller {
     param([string]$Command)
-    $ti = Join-Path $PSScriptRoot "MinSudo.exe"
-    if (-not (Test-Path $ti)) { throw "MinSudo.exe was not found at $ti" }
+    $ti = Join-Path $PSScriptRoot "XSudo.exe"
+    if (-not (Test-Path $ti)) { throw "XSudo.exe was not found at $ti" }
     Write-Log "TrustedInstaller command: $Command"
     $process = Start-Process $ti -ArgumentList "--TrustedInstaller --NoLogo $Command" -Wait -WindowStyle Hidden -PassThru
     Write-Log "TrustedInstaller exit code: $($process.ExitCode)"
@@ -359,8 +359,8 @@ function Invoke-AsTrustedInstallerOutput {
         [Parameter(Mandatory = $true)][string]$Arguments,
         [int]$TimeoutMs = 30000
     )
-    $ti = Join-Path $PSScriptRoot 'MinSudo.exe'
-    if (-not (Test-Path -LiteralPath $ti)) { throw "MinSudo.exe was not found at $ti" }
+    $ti = Join-Path $PSScriptRoot 'XSudo.exe'
+    if (-not (Test-Path -LiteralPath $ti)) { throw "XSudo.exe was not found at $ti" }
 
     $windowsRoot = [Environment]::GetFolderPath('Windows')
     $tempDirectory = Join-Path $windowsRoot 'Temp'

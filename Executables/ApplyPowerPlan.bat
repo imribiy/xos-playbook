@@ -87,7 +87,7 @@ call :Set e73a048d-bf27-4f12-9731-8b2076e8891f bcded951-187b-4d05-bccc-f7e51960c
 powercfg /setactive %PLAN% >nul 2>&1
 
 set "PLANKEY=HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes\%PLAN%"
-set "TI=%~dp0MinSudo.exe"
+set "TI=%~dp0XSudo.exe"
 if exist "%TI%" (
     "%TI%" --TrustedInstaller --NoLogo reg.exe add "%PLANKEY%" /v FriendlyName /t REG_SZ /d "imribiy Power Plan" /f >nul 2>&1
     "%TI%" --TrustedInstaller --NoLogo reg.exe add "%PLANKEY%" /v Description /t REG_SZ /d "dsc.gg/xos" /f >nul 2>&1
