@@ -830,7 +830,7 @@ actions:
   - !run: {exe: 'bcdedit.exe', args: '/set bootmenupolicy legacy',    wait: true, showOutput: false, showError: false}
   - !run: {exe: 'bcdedit.exe', args: '/timeout 10',                   wait: true, showOutput: false, showError: false}
   - !cmd: {command: 'label %SystemDrive% XOS', wait: true, runas: trustedInstaller}
-  - !run: {exe: 'bcdedit.exe', args: '/set {current} description "XOS-Playbook-V0.806"', wait: true, showOutput: false, showError: false}
+  - !run: {exe: 'bcdedit.exe', args: '/set {current} description "XOS-Playbook-V0.807"', wait: true, showOutput: false, showError: false}
 
   - !writeStatus: {status: 'Disabling DMA Remapping'}
   - !powerShell:
@@ -948,22 +948,6 @@ actions:
       args: '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /TASKS="desktopicon,startmenuicon"'
       wait: true
       runas: currentUserElevated
-  - !powerShell:
-      wait: true
-      exeDir: true
-      command: >-
-        try {
-          $pf = if ($env:ProgramW6432) { $env:ProgramW6432 } else { $env:ProgramFiles };
-          $dir = Join-Path $pf 'XSudo';
-          $exe = Join-Path $dir 'XSudo.exe';
-          New-Item -ItemType Directory -Force -Path $dir -ErrorAction Stop | Out-Null;
-          Remove-Item -LiteralPath ($exe + '.old') -Force -ErrorAction SilentlyContinue;
-          if (Test-Path -LiteralPath $exe) { try { Remove-Item -LiteralPath $exe -Force -ErrorAction Stop } catch { Rename-Item -LiteralPath $exe -NewName 'XSudo.exe.old' -ErrorAction Stop } };
-          Copy-Item -LiteralPath '.\XSudo.exe' -Destination $exe -Force -ErrorAction Stop;
-          $wsh = New-Object -ComObject WScript.Shell;
-          $lnk = $wsh.CreateShortcut((Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\XSudo.lnk'));
-          $lnk.TargetPath = $exe; $lnk.WorkingDirectory = $dir; $lnk.IconLocation = $exe + ',0'; $lnk.WindowStyle = 7; $lnk.Description = 'Run programs as TrustedInstaller'; $lnk.Save()
-        } catch { Write-Output ('FAILED XSudo install: ' + $_.Exception.Message) }
 
   - !writeStatus: {status: 'Applying Device-Specific Settings'}
   - !service: {name: 'bam', operation: change, startup: 3}
@@ -1345,11 +1329,11 @@ actions:
          Set-ItemProperty $p -Name 'Disabled' -Value 1 -Force;
          Set-ItemProperty $p -Name 'DisabledByUser' -Value 1 -Force
 
-  - !cmd: {command: 'reg import runasti.reg >nul 2>&1', exeDir: true, wait: true, runas: currentUserElevated}
+  - !cmd: {command: 'reg import TakeOwnership.reg >nul 2>&1', exeDir: true, wait: true, runas: currentUserElevated}
   - !powerShell:
       wait: true
       command: >-
-        if (-not (Test-Path -LiteralPath 'Registry::HKEY_CLASSES_ROOT\RunAsTI')) { Write-Warning 'runasti.reg was not imported: the Run as TrustedInstaller verbs are missing'; exit 0 };
+        if (-not (Test-Path -LiteralPath 'Registry::HKEY_CLASSES_ROOT\Directory\shell\TakeOwnership')) { Write-Warning 'TakeOwnership.reg was not imported: the Take Ownership entries are missing'; exit 0 };
         $drive = $env:SystemDrive.TrimEnd('\');
         $excluded = @(($drive + '\Users'), $env:ProgramData, $env:SystemRoot, (Join-Path $env:SystemRoot 'System32'), $env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ };
         $directoryAppliesTo = 'NOT (' + (($excluded | ForEach-Object { 'System.ItemPathDisplay:=' + [char]34 + $_ + [char]34 }) -join ' OR ') + ')';
@@ -1358,6 +1342,38 @@ actions:
         $driveAppliesTo = 'NOT (System.ItemPathDisplay:=' + [char]34 + $drive + '\' + [char]34 + ')';
         $driveKey = 'Registry::HKEY_CLASSES_ROOT\Drive\shell\runas';
         if (Test-Path -LiteralPath $driveKey) { Set-ItemProperty -LiteralPath $driveKey -Name 'AppliesTo' -Value $driveAppliesTo -Force -ErrorAction SilentlyContinue }
+  - !powerShell:
+      wait: true
+      runas: currentUserElevated
+      command: >-
+        $classes = @('batfile', 'cmdfile', 'exefile', 'mscfile', 'Microsoft.PowerShellScript.1', 'regfile', 'Folder');
+        foreach ($root in @('HKLM:\SOFTWARE\Classes', 'HKCU:\Software\Classes')) {
+          foreach ($class in $classes) {
+            $verb = $root + '\' + $class + '\shell\setdesktopwallpaper';
+            $commandKey = Get-Item -LiteralPath ($verb + '\command') -ErrorAction SilentlyContinue;
+            if ($commandKey -and ([string]$commandKey.GetValue('')) -like '*Registry::HKCR\RunAsTI*') {
+              Remove-Item -LiteralPath $verb -Recurse -Force -ErrorAction SilentlyContinue;
+              if (Test-Path -LiteralPath $verb) { Write-Warning ('The old Run as TrustedInstaller entry could not be removed: ' + $verb) }
+            }
+          };
+          $data = $root + '\RunAsTI';
+          if (Test-Path -LiteralPath $data) {
+            Remove-Item -LiteralPath $data -Recurse -Force -ErrorAction SilentlyContinue;
+            if (Test-Path -LiteralPath $data) { Write-Warning ('The old RunAsTI data key could not be removed: ' + $data) }
+          }
+        }
+  - !powerShell:
+      wait: true
+      runas: currentUserElevated
+      command: >-
+        $pf = if ($env:ProgramW6432) { $env:ProgramW6432 } else { $env:ProgramFiles };
+        $xsudo = Join-Path $pf 'XSudo\XSudo.exe';
+        if (-not (Test-Path -LiteralPath $xsudo)) { Write-Warning ('XSudo is missing, so the TrustedInstaller right-click entries were not added: ' + $xsudo); exit 0 };
+        $output = & $xsudo --ContextMenu=On 2>&1;
+        $code = $LASTEXITCODE;
+        $prefix = [char]34 + $xsudo + [char]34 + ' ';
+        $missing = @(@('batfile', 'cmdfile', 'exefile', 'mscfile', 'Microsoft.PowerShellScript.1', 'regfile', 'Folder') | Where-Object { $key = Get-Item -LiteralPath ('HKLM:\SOFTWARE\Classes\' + $_ + '\shell\XSudoRunAsTI\command') -ErrorAction SilentlyContinue; -not $key -or -not ([string]$key.GetValue('')).StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase) });
+        if ($code -ne 0 -or $missing.Count -gt 0) { Write-Warning ('XSudo --ContextMenu=On did not add every TrustedInstaller right-click entry (exit ' + $code + ', missing: ' + ($missing -join ', ') + '): ' + (($output | ForEach-Object { [string]$_ }) -join ' ')) }
   - !registryValue: {path: 'HKCU\Control Panel\Mouse', value: 'MouseSpeed', type: REG_SZ, data: '0'}
   - !registryValue: {path: 'HKCU\Control Panel\Mouse', value: 'MouseThreshold1', type: REG_SZ, data: '0'}
   - !registryValue: {path: 'HKCU\Control Panel\Mouse', value: 'MouseThreshold2', type: REG_SZ, data: '0'}
