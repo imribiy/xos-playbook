@@ -4,7 +4,7 @@ Windows optimization playbook for gaming and privacy, applied with [AME Wizard](
 
 **Downloads:** see [Releases](https://github.com/imribiy/xos-playbook/releases). Builds marked *Pre-release* are developer betas. Report problems in [Issues](https://github.com/imribiy/xos-playbook/issues); search the existing ones first.
 
-The companion app, XOS Toolkit, lives in [imribiy/xos-toolkit](https://github.com/imribiy/xos-toolkit). Every playbook release installs it.
+The companion app, XOS Toolkit, lives in [imribiy/xos-toolkit](https://github.com/imribiy/xos-toolkit). Every playbook release installs it. The full installation guide, with video guides, and the FAQ are in [imribiy/XOS](https://github.com/imribiy/XOS).
 
 ## Supported Windows
 
@@ -46,3 +46,4 @@ Copyright (c) 2026 XOS (imribiy). Licensed under [CC BY-NC-ND 4.0](LICENSE): you
 - AME Wizard by [Ameliorated](https://ameliorated.io).
 - `Executables/XSudo.exe` is XSudo, the elevation helper, part of XOS; its source is in [xos-toolkit](https://github.com/imribiy/xos-toolkit) under `XSudo/`.
 - `DefenderOFF.ps1` is based on LeanAndMean by AveYo (MIT).
+- The bundled XOS Toolkit installer contains third-party programs (Nvidia Profile Inspector by Orbmu2k, MIT; the Chocolatey installer, Apache 2.0); see the [xos-toolkit credits](https://github.com/imribiy/xos-toolkit#credits).
