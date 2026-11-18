@@ -52,8 +52,7 @@ actions:
   - !registryValue: {path: 'HKLM\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked', value: '{e2bf9676-5f8f-435c-97eb-11607a5bedf7}', type: REG_SZ, data: ''}
   - !registryValue: {path: 'HKLM\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked', value: '{596AB062-B4D2-4215-9F74-E9109B0A8153}', type: REG_SZ, data: ''}
   - !registryValue: {path: 'HKLM\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked', value: '{596AB062-B4D2-4215-9F74-E9109B0A8153}', type: REG_SZ, data: ''}
-  - !taskKill: {name: 'explorer', errorAction: Ignore}
-  - !run: {exe: 'explorer.exe', runas: 'currentUser', wait: false}
+  - !run: {exe: 'powershell.exe', args: '-NoProfile -NonInteractive -WindowStyle Hidden -Command "if (-not (Get-Process -Name explorer -ErrorAction SilentlyContinue)) { Start-Process explorer.exe }"', runas: 'currentUser', wait: true, errorAction: Ignore}
 
   
   - !writeStatus: {status: 'Removing OneDrive', option: 'remove-onedrive'}
@@ -830,7 +829,7 @@ actions:
   - !run: {exe: 'bcdedit.exe', args: '/set bootmenupolicy legacy',    wait: true, showOutput: false, showError: false}
   - !run: {exe: 'bcdedit.exe', args: '/timeout 10',                   wait: true, showOutput: false, showError: false}
   - !cmd: {command: 'label %SystemDrive% XOS', wait: true, runas: trustedInstaller}
-  - !run: {exe: 'bcdedit.exe', args: '/set {current} description "XOS-Playbook-V0.809"', wait: true, showOutput: false, showError: false}
+  - !run: {exe: 'bcdedit.exe', args: '/set {current} description "XOS-Playbook-V0.810"', wait: true, showOutput: false, showError: false}
 
   - !writeStatus: {status: 'Disabling DMA Remapping'}
   - !powerShell:

@@ -332,17 +332,8 @@ if ($isWin11) {
         "IsResumeAllowed" = 0
     }
 
-    if (-not $isServer) {
-        try {
-            Stop-Process -Name "explorer" -Force -ErrorAction Stop
-        } catch {
-        } finally {
-			   
-            Start-Sleep -Seconds 1
-            if (!(Get-Process explorer -ErrorAction SilentlyContinue)) {
-                Start-Process explorer
-            }
-        }
+    if (-not $isServer -and !(Get-Process explorer -ErrorAction SilentlyContinue)) {
+        Start-Process explorer
     }
 
 } else {
