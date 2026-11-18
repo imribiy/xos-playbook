@@ -829,7 +829,7 @@ actions:
   - !run: {exe: 'bcdedit.exe', args: '/set bootmenupolicy legacy',    wait: true, showOutput: false, showError: false}
   - !run: {exe: 'bcdedit.exe', args: '/timeout 10',                   wait: true, showOutput: false, showError: false}
   - !cmd: {command: 'label %SystemDrive% XOS', wait: true, runas: trustedInstaller}
-  - !run: {exe: 'bcdedit.exe', args: '/set {current} description "XOS-Playbook-V0.812"', wait: true, showOutput: false, showError: false}
+  - !run: {exe: 'bcdedit.exe', args: '/set {current} description "XOS-Playbook-V0.813"', wait: true, showOutput: false, showError: false}
 
   - !writeStatus: {status: 'Disabling DMA Remapping'}
   - !powerShell:
