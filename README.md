@@ -2,7 +2,7 @@
 
 Windows optimization playbook for gaming and privacy, applied with [AME Wizard](https://ameliorated.io).
 
-**Downloads:** see [Releases](https://github.com/imribiy/xos-playbook/releases). Builds marked *Pre-release* are developer betas. Report problems in [Issues](https://github.com/imribiy/xos-playbook/issues); search the existing ones first.
+**Downloads:** see [Releases](https://github.com/imribiy/xos-playbook/releases). Releases here are stable. Developer betas, for advanced users only, are published in [xos-beta](https://github.com/imribiy/xos-beta/releases). Report problems in [Issues](https://github.com/imribiy/xos-playbook/issues); search the existing ones first.
 
 The companion app, XOS Toolkit, lives in [imribiy/xos-toolkit](https://github.com/imribiy/xos-toolkit). Every playbook release installs it. The full installation guide, with video guides, and the FAQ are in [imribiy/XOS](https://github.com/imribiy/XOS).
 
