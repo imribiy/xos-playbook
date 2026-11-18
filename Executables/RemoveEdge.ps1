@@ -38,7 +38,6 @@ $Components = @{
 
 $GeoKey        = 'HKEY_USERS\.DEFAULT\Control Panel\International\Geo'
 $DeviceRegionKey = 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\DeviceRegion'
-$RegionKey     = 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\DeviceRegion'
 $TemporaryRegion = 94
 $TemporaryRegionName = 'DE'
 $LogDirectory = Join-Path $env:ProgramData 'AME\Logs'
@@ -347,155 +346,6 @@ function Run-AsTrustedInstaller {
     if ($process.ExitCode -ne 0) { throw "TrustedInstaller command failed with exit code $($process.ExitCode): $Command" }
 }
 
-function ConvertTo-PowerShellLiteral {
-    param([AllowNull()][string]$Value)
-    if ($null -eq $Value) { return "''" }
-    return "'" + ($Value -replace "'", "''") + "'"
-}
-
-function Invoke-AsTrustedInstallerOutput {
-    param(
-        [Parameter(Mandatory = $true)][string]$FilePath,
-        [Parameter(Mandatory = $true)][string]$Arguments,
-        [int]$TimeoutMs = 30000
-    )
-    $ti = Join-Path $PSScriptRoot 'XSudo.exe'
-    if (-not (Test-Path -LiteralPath $ti)) { throw "XSudo.exe was not found at $ti" }
-
-    $windowsRoot = [Environment]::GetFolderPath('Windows')
-    $tempDirectory = Join-Path $windowsRoot 'Temp'
-    if (-not (Test-Path -LiteralPath $tempDirectory)) {
-        New-Item -ItemType Directory -Path $tempDirectory -Force -ErrorAction Stop | Out-Null
-    }
-    $token = 'XOS-TI-' + [Guid]::NewGuid().ToString('N')
-    $wrapperPath = Join-Path $tempDirectory ($token + '.ps1')
-    $outputPath = Join-Path $tempDirectory ($token + '.out')
-    $exitCodePath = Join-Path $tempDirectory ($token + '.exit')
-    $launcher = $null
-    try {
-        $wrapper = @'
-$ErrorActionPreference = 'Stop'
-$code = -1
-$combined = ''
-$utf8 = New-Object System.Text.UTF8Encoding($false)
-try {
-    $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = __FILE_PATH__
-    $psi.Arguments = __ARGUMENTS__
-    $psi.UseShellExecute = $false
-    $psi.CreateNoWindow = $true
-    $psi.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
-    $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError = $true
-    $child = New-Object System.Diagnostics.Process
-    $child.StartInfo = $psi
-    if (-not $child.Start()) { throw 'The child process could not be started.' }
-    $outTask = $child.StandardOutput.ReadToEndAsync()
-    $errTask = $child.StandardError.ReadToEndAsync()
-    $child.WaitForExit()
-    $stdout = $outTask.GetAwaiter().GetResult()
-    $stderr = $errTask.GetAwaiter().GetResult()
-    if ($stdout -and $stderr) { $combined = $stdout + ' | STDERR: ' + $stderr }
-    elseif ($stderr) { $combined = $stderr }
-    else { $combined = $stdout }
-    $code = $child.ExitCode
-} catch {
-    $combined = $_.Exception.Message
-}
-[System.IO.File]::WriteAllText(__OUTPUT_PATH__, $combined, $utf8)
-[System.IO.File]::WriteAllText(__EXIT_PATH__, [string]$code, $utf8)
-exit $code
-'@
-        $wrapper = $wrapper.Replace('__FILE_PATH__', (ConvertTo-PowerShellLiteral $FilePath))
-        $wrapper = $wrapper.Replace('__ARGUMENTS__', (ConvertTo-PowerShellLiteral $Arguments))
-        $wrapper = $wrapper.Replace('__OUTPUT_PATH__', (ConvertTo-PowerShellLiteral $outputPath))
-        $wrapper = $wrapper.Replace('__EXIT_PATH__', (ConvertTo-PowerShellLiteral $exitCodePath))
-        $utf8 = New-Object System.Text.UTF8Encoding($false)
-        [System.IO.File]::WriteAllText($wrapperPath, $wrapper, $utf8)
-
-        $launcherInfo = New-Object System.Diagnostics.ProcessStartInfo
-        $launcherInfo.FileName = $ti
-        $launcherInfo.Arguments = '-TI -P powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + $wrapperPath + '"'
-        $launcherInfo.UseShellExecute = $false
-        $launcherInfo.CreateNoWindow = $true
-        $launcherInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
-        $launcherInfo.RedirectStandardOutput = $true
-        $launcherInfo.RedirectStandardError = $true
-        $launcher = New-Object System.Diagnostics.Process
-        $launcher.StartInfo = $launcherInfo
-        Write-Log "TrustedInstaller command with result capture: $FilePath $Arguments"
-        if (-not $launcher.Start()) { throw 'TrustedInstaller launcher could not be started.' }
-        $stdoutTask = $launcher.StandardOutput.ReadToEndAsync()
-        $stderrTask = $launcher.StandardError.ReadToEndAsync()
-        if (-not $launcher.WaitForExit($TimeoutMs)) {
-            try { & (Join-Path $windowsRoot 'System32\taskkill.exe') /pid $launcher.Id /t /f > $null 2>&1 } catch { }
-            throw "TrustedInstaller command timed out after $TimeoutMs ms."
-        }
-        $launcherStdout = $stdoutTask.GetAwaiter().GetResult().Trim()
-        $launcherStderr = $stderrTask.GetAwaiter().GetResult().Trim()
-        $launcherOutput = if ($launcherStdout -and $launcherStderr) {
-            $launcherStdout + ' | STDERR: ' + $launcherStderr
-        } elseif ($launcherStderr) {
-            $launcherStderr
-        } else {
-            $launcherStdout
-        }
-        for ($i = 0; $i -lt 50 -and -not (Test-Path -LiteralPath $exitCodePath); $i++) {
-            Start-Sleep -Milliseconds 100
-        }
-        if (-not (Test-Path -LiteralPath $exitCodePath)) {
-            $message = "TrustedInstaller did not return the child result (launcher exit $($launcher.ExitCode)). $launcherOutput"
-            throw $message.Trim()
-        }
-        $childExitCode = -1
-        $exitText = [System.IO.File]::ReadAllText($exitCodePath).Trim()
-        if (-not [int]::TryParse($exitText, [ref]$childExitCode)) {
-            throw "TrustedInstaller returned an invalid child exit code: $exitText"
-        }
-        $childOutput = if (Test-Path -LiteralPath $outputPath) {
-            [System.IO.File]::ReadAllText($outputPath).Trim()
-        } else { '' }
-        Write-Log "TrustedInstaller child exit code: $childExitCode (launcher exit $($launcher.ExitCode))"
-        if (-not [string]::IsNullOrWhiteSpace($childOutput)) {
-            Write-Log "TrustedInstaller child output: $childOutput"
-        }
-        return [pscustomobject]@{
-            ExitCode = $childExitCode
-            Output = $childOutput
-            LauncherExitCode = $launcher.ExitCode
-        }
-    } finally {
-        if ($launcher) { $launcher.Dispose() }
-        Remove-Item -LiteralPath $wrapperPath, $outputPath, $exitCodePath -Force -ErrorAction SilentlyContinue
-    }
-}
-
-function Invoke-DeviceRegionReg {
-    param([string]$Arguments)
-    $windowsRoot = [Environment]::GetFolderPath('Windows')
-    $source = Join-Path $windowsRoot 'System32\reg.exe'
-    if ([Environment]::Is64BitOperatingSystem -and -not [Environment]::Is64BitProcess) {
-        $source = Join-Path $windowsRoot 'Sysnative\reg.exe'
-    }
-    if (-not (Test-Path -LiteralPath $source)) { throw "Registry helper was not found at $source" }
-    $tempDirectory = Join-Path $windowsRoot 'Temp'
-    if (-not (Test-Path -LiteralPath $tempDirectory)) {
-        New-Item -ItemType Directory -Path $tempDirectory -Force -ErrorAction Stop | Out-Null
-    }
-    $temporaryHelper = Join-Path $tempDirectory ('XOS-Region-' + [Guid]::NewGuid().ToString('N') + '.exe')
-    try {
-        Copy-Item -LiteralPath $source -Destination $temporaryHelper -Force -ErrorAction Stop
-        Write-Log "Using neutral-named registry helper for DeviceRegion: $temporaryHelper"
-        $result = Invoke-AsTrustedInstallerOutput -FilePath $temporaryHelper -Arguments $Arguments
-        if ($result.ExitCode -ne 0) {
-            $details = if ([string]::IsNullOrWhiteSpace($result.Output)) { 'no child output' } else { $result.Output }
-            throw "TrustedInstaller registry command failed with child exit code $($result.ExitCode): $details"
-        }
-    } finally {
-        Remove-Item -LiteralPath $temporaryHelper -Force -ErrorAction SilentlyContinue
-    }
-}
-
 Write-Log 'Action started'
 try {
 switch ($Action) {
@@ -522,13 +372,10 @@ switch ($Action) {
                 $null -ne $priorGeo.GetValue('XOS_SavedGeoNameExists', $null)
             if ($hasPendingSave) {
                 $liveNation = [Microsoft.Win32.Registry]::GetValue($GeoKey, 'Nation', $null)
-                $liveDeviceRegion = [Microsoft.Win32.Registry]::GetValue($DeviceRegionKey, 'DeviceRegion', $null)
                 $liveName = [Microsoft.Win32.Registry]::GetValue($GeoKey, 'Name', $null)
                 $savedNation = $priorGeo.GetValue('XOS_SavedNation', $null)
-                $savedRegion = $priorGeo.GetValue('XOS_SavedDeviceRegion', $null)
                 $savedName = $priorGeo.GetValue('XOS_SavedGeoName', $null)
                 $liveMatchesSpoof = ("$liveNation" -eq "$TemporaryRegion" -and "$savedNation" -ne "$TemporaryRegion") -or
-                    ("$liveDeviceRegion" -eq "$TemporaryRegion" -and "$savedRegion" -ne "$TemporaryRegion") -or
                     ("$liveName" -eq $TemporaryRegionName -and "$savedName" -ne $TemporaryRegionName)
                 if ($liveMatchesSpoof) {
                     throw "A previous region spoof was never restored and the live values are still the temporary region. Refusing to overwrite the saved originals."
@@ -537,8 +384,7 @@ switch ($Action) {
             } else {
                 $nation = [Microsoft.Win32.Registry]::GetValue($GeoKey, 'Nation', $null)
                 $geoName = [Microsoft.Win32.Registry]::GetValue($GeoKey, 'Name', $null)
-                $deviceRegion = [Microsoft.Win32.Registry]::GetValue($DeviceRegionKey, 'DeviceRegion', $null)
-                Write-Log "Saving region: Nation=$(if ($null -eq $nation) { 'not set' } else { $nation }); Name=$(if ($null -eq $geoName) { 'not set' } else { $geoName }); DeviceRegion=$(if ($null -eq $deviceRegion) { 'not set' } else { $deviceRegion })"
+                Write-Log "Saving region: Nation=$(if ($null -eq $nation) { 'not set' } else { $nation }); Name=$(if ($null -eq $geoName) { 'not set' } else { $geoName })"
                 $geo = [Microsoft.Win32.Registry]::Users.CreateSubKey('.DEFAULT\Control Panel\International\Geo')
                 try {
                     $geo.SetValue('XOS_SavedNationExists', [int]($null -ne $nation), [Microsoft.Win32.RegistryValueKind]::DWord)
@@ -547,9 +393,6 @@ switch ($Action) {
                     $geo.SetValue('XOS_SavedGeoNameExists', [int]($null -ne $geoName), [Microsoft.Win32.RegistryValueKind]::DWord)
                     if ($null -ne $geoName) { $geo.SetValue('XOS_SavedGeoName', [string]$geoName, [Microsoft.Win32.RegistryValueKind]::String) }
                     else { $geo.DeleteValue('XOS_SavedGeoName', $false) }
-                    $geo.SetValue('XOS_SavedDeviceRegionExists', [int]($null -ne $deviceRegion), [Microsoft.Win32.RegistryValueKind]::DWord)
-                    if ($null -ne $deviceRegion) { $geo.SetValue('XOS_SavedDeviceRegion', [int]$deviceRegion, [Microsoft.Win32.RegistryValueKind]::DWord) }
-                    else { $geo.DeleteValue('XOS_SavedDeviceRegion', $false) }
                 } finally {
                     $geo.Close()
                 }
@@ -559,22 +402,18 @@ switch ($Action) {
         }
 
         try {
-            Invoke-DeviceRegionReg "add `"$RegionKey`" /v DeviceRegion /t REG_DWORD /d $TemporaryRegion /f"
-            $appliedDeviceRegion = [Microsoft.Win32.Registry]::GetValue($DeviceRegionKey, 'DeviceRegion', $null)
-            if ("$appliedDeviceRegion" -ne "$TemporaryRegion") {
-                throw "Temporary DeviceRegion could not be verified: $appliedDeviceRegion"
-            }
             [Microsoft.Win32.Registry]::SetValue($GeoKey, 'Nation', [string]$TemporaryRegion, [Microsoft.Win32.RegistryValueKind]::String)
             [Microsoft.Win32.Registry]::SetValue($GeoKey, 'Name', $TemporaryRegionName, [Microsoft.Win32.RegistryValueKind]::String)
             $appliedNation = [Microsoft.Win32.Registry]::GetValue($GeoKey, 'Nation', $null)
             $appliedGeoName = [Microsoft.Win32.Registry]::GetValue($GeoKey, 'Name', $null)
             if ([string]$appliedNation -ne [string]$TemporaryRegion -or [string]$appliedGeoName -ne $TemporaryRegionName) {
-                throw "Temporary EEA region could not be verified: DeviceRegion=$appliedDeviceRegion; Nation=$appliedNation; Name=$appliedGeoName"
+                throw "Temporary EEA region could not be verified: Nation=$appliedNation; Name=$appliedGeoName"
             }
-            Write-Log "Temporary EEA region applied: DeviceRegion=$TemporaryRegion; Nation=$TemporaryRegion; Name=$TemporaryRegionName"
+            Write-Log "Temporary EEA region applied: Nation=$TemporaryRegion; Name=$TemporaryRegionName; DeviceRegion left unchanged"
         } catch {
-            $liveDeviceRegion = [Microsoft.Win32.Registry]::GetValue($DeviceRegionKey, 'DeviceRegion', $null)
-            if ("$liveDeviceRegion" -ne "$TemporaryRegion") {
+            $liveNation = [Microsoft.Win32.Registry]::GetValue($GeoKey, 'Nation', $null)
+            $liveName = [Microsoft.Win32.Registry]::GetValue($GeoKey, 'Name', $null)
+            if ("$liveNation" -ne "$TemporaryRegion" -and "$liveName" -ne $TemporaryRegionName) {
                 $cleanupGeo = [Microsoft.Win32.Registry]::Users.OpenSubKey('.DEFAULT\Control Panel\International\Geo', $true)
                 if ($cleanupGeo) {
                     try {
@@ -584,7 +423,7 @@ switch ($Action) {
                         $cleanupGeo.Close()
                     }
                 }
-                Write-Log 'Region spoof did not change DeviceRegion; cleared the pending region save'
+                Write-Log 'Region spoof did not change the region; cleared the pending region save'
             }
             throw
         }
@@ -616,25 +455,10 @@ switch ($Action) {
 
             $savedDeviceRegion = $geo.GetValue('XOS_SavedDeviceRegion', $null)
             $deviceRegionExists = $geo.GetValue('XOS_SavedDeviceRegionExists', $null)
-            $skipDeviceRegion = $false
-            if ($null -eq $deviceRegionExists -and $null -ne $savedNation) {
-                $legacyNation = 0
-                $legacyRegion = [Microsoft.Win32.Registry]::GetValue($DeviceRegionKey, 'DeviceRegion', $null)
-                if ([int]::TryParse([string]$savedNation, [ref]$legacyNation) -and $null -ne $legacyRegion -and @($TemporaryRegion, 244) -contains [int]$legacyRegion) {
-                    $deviceRegionExists = 1
-                    $savedDeviceRegion = $legacyNation
-                    Write-Log 'Using legacy Nation marker to restore the spoofed DeviceRegion.'
-                } else {
-                    $skipDeviceRegion = $true
-                    Write-Log 'Legacy region marker found without a spoofed DeviceRegion; leaving DeviceRegion unchanged.'
-                }
-            }
-            if ($skipDeviceRegion) {
-            } elseif ($deviceRegionExists -eq 1) {
-                if ($null -eq $savedDeviceRegion) { throw 'Saved DeviceRegion value is missing' }
-                Invoke-DeviceRegionReg "add `"$RegionKey`" /v DeviceRegion /t REG_DWORD /d $([int]$savedDeviceRegion) /f"
-            } elseif ($deviceRegionExists -eq 0 -and $null -ne [Microsoft.Win32.Registry]::GetValue($DeviceRegionKey, 'DeviceRegion', $null)) {
-                Invoke-DeviceRegionReg "delete `"$RegionKey`" /v DeviceRegion /f"
+            $liveDeviceRegion = [Microsoft.Win32.Registry]::GetValue($DeviceRegionKey, 'DeviceRegion', $null)
+            if (($deviceRegionExists -eq 1 -and $null -ne $savedDeviceRegion -and "$liveDeviceRegion" -ne "$savedDeviceRegion") -or
+                ($deviceRegionExists -eq 0 -and $null -ne $liveDeviceRegion)) {
+                Write-Log "DeviceRegion is $(if ($null -eq $liveDeviceRegion) { 'not set' } else { $liveDeviceRegion }); an earlier XOS version saved it as $(if ($deviceRegionExists -eq 0) { 'not set' } else { $savedDeviceRegion }). XOS no longer writes DeviceRegion, so it is left as it is."
             }
             $restored = $true
             Write-Log 'Original region restored'
