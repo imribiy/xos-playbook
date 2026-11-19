@@ -322,6 +322,7 @@ actions:
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management',                value: 'FeatureSettingsOverrideMask',  type: REG_DWORD, data: '3'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power',                            value: 'CoalescingTimerInterval',      type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control', value: 'SvcHostSplitThresholdInKB', type: REG_DWORD, data: '3670016'}
+  - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control', value: 'WaitToKillServiceTimeout', type: REG_SZ, data: '2000'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager',                                   value: 'Segment Heap',                type: REG_DWORD, data: '1'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager',                                   value: 'BackgroundLoadKnownDlls',     type: REG_DWORD, data: '1'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager',                                   value: 'BootExecuteNoPnpSync',        type: REG_DWORD, data: '1'}
@@ -338,6 +339,7 @@ actions:
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Services\BrokerInfrastructure\Parameters',                 value: 'DefaultTriggerCoalescingTime',type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Services\BrokerInfrastructure\Parameters',                 value: 'DisableTriggerCoalescing',    type: REG_DWORD, data: '1'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power',                            value: 'SleepStudyDisabled',          type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power',                            value: 'HiberbootEnabled',            type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Lsa',                                               value: 'TokenLeakDetectDelaySecs',    type: REG_DWORD, data: '30'}
   - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\Appx',                                         value: 'AllowAutomaticAppArchiving', type: REG_DWORD, data: '0'}
 
@@ -773,6 +775,9 @@ actions:
   - !cmd: {command: 'fsutil behavior set disablelastaccess 1', wait: true, runas: trustedInstaller}
   - !cmd: {command: 'fsutil behavior set encryptpagingfile 0', wait: true, runas: trustedInstaller}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\FileSystem', value: 'LongPathsEnabled', type: REG_DWORD, data: '1'}
+
+  - !writeStatus: {status: 'Disabling Reserved Storage'}
+  - !powerShell: {command: '.\ReservedStorage.ps1 -Mode Apply', exeDir: true, wait: true, errorAction: Ignore}
 
   - !writeStatus: {status: 'Blocking App Reinstalls'}
   - !registryValue: {path: 'HKLM\Software\Microsoft\Windows\CurrentVersion\Communications', value: 'ConfigureChatAutoInstall', type: REG_DWORD, data: '0'}
