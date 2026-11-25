@@ -322,6 +322,7 @@ actions:
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management',                value: 'FeatureSettingsOverrideMask',  type: REG_DWORD, data: '3'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power',                            value: 'CoalescingTimerInterval',      type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control', value: 'SvcHostSplitThresholdInKB', type: REG_DWORD, data: '3670016'}
+  - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control', value: 'WaitToKillServiceTimeout', type: REG_SZ, data: '2000'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager',                                   value: 'Segment Heap',                type: REG_DWORD, data: '1'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager',                                   value: 'BackgroundLoadKnownDlls',     type: REG_DWORD, data: '1'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager',                                   value: 'BootExecuteNoPnpSync',        type: REG_DWORD, data: '1'}
@@ -338,6 +339,7 @@ actions:
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Services\BrokerInfrastructure\Parameters',                 value: 'DefaultTriggerCoalescingTime',type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Services\BrokerInfrastructure\Parameters',                 value: 'DisableTriggerCoalescing',    type: REG_DWORD, data: '1'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power',                            value: 'SleepStudyDisabled',          type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power',                            value: 'HiberbootEnabled',            type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\Lsa',                                               value: 'TokenLeakDetectDelaySecs',    type: REG_DWORD, data: '30'}
   - !registryValue: {path: 'HKLM\Software\Policies\Microsoft\Windows\Appx',                                         value: 'AllowAutomaticAppArchiving', type: REG_DWORD, data: '0'}
 
@@ -511,6 +513,19 @@ actions:
   - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings', value: 'AutoOpenCopilotLargeScreens', type: REG_DWORD, data: 0, option: 'remove-ai'}
   - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced', value: 'ShowCopilotButton', type: REG_DWORD, data: 0, option: 'remove-ai'}
   - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\FeatureUsage\ShowJumpView', value: 'Microsoft.Copilot_8wekyb3d8bbwe!App', type: REG_DWORD, data: 1, option: 'remove-ai'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI', value: 'DisableClickToDo', type: REG_DWORD, data: '1', option: 'remove-ai'}
+  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\WindowsAI', value: 'DisableClickToDo', type: REG_DWORD, data: '1', option: 'remove-ai'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI', value: 'DisableSettingsAgent', type: REG_DWORD, data: '1', option: 'remove-ai'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessSystemAIModels', type: REG_DWORD, data: '2', option: 'remove-ai'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\WindowsNotepad', value: 'DisableAIFeatures', type: REG_DWORD, data: '1', option: 'remove-ai'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Paint', value: 'DisableImageCreator', type: REG_DWORD, data: '1', option: 'remove-ai'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Paint', value: 'DisableCocreator', type: REG_DWORD, data: '1', option: 'remove-ai'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Paint', value: 'DisableGenerativeFill', type: REG_DWORD, data: '1', option: 'remove-ai'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Edge', value: 'HubsSidebarEnabled', type: REG_DWORD, data: '0', option: 'remove-ai'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Edge', value: 'CopilotPageContext', type: REG_DWORD, data: '0', option: 'remove-ai'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Edge', value: 'EdgeHistoryAISearchEnabled', type: REG_DWORD, data: '0', option: 'remove-ai'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Edge', value: 'ComposeInlineEnabled', type: REG_DWORD, data: '0', option: 'remove-ai'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Edge', value: 'GenAILocalFoundationalModelSettings', type: REG_DWORD, data: '1', option: 'remove-ai'}
   - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization',              value: 'RestrictImplicitInkCollection', type: REG_DWORD, data: '1'}
   - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization',              value: 'AllowInputPersonalization',     type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\HandwritingErrorReports',   value: 'PreventHandwritingErrorReports', type: REG_DWORD, data: '1'}
@@ -533,13 +548,15 @@ actions:
   - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore', value: 'HarvestContacts', type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Input\TIPC', value: 'Enabled', type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\WindowsAI', value: 'DisableAIDataAnalysis', type: REG_DWORD, data: '1'}
-  - !registryValue: {path: 'HKCU\Software\Policies\Microsoft\Windows\WindowsAI', value: 'AllowRecallEnablement', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI', value: 'AllowRecallEnablement', type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Siuf\Rules', value: 'PeriodInNanoSeconds', operation: delete}
   - !registryValue: {path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Privacy', value: 'TailoredExperiencesWithDiagnosticDataEnabled', type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent', value: 'DisableTailoredExperiencesWithDiagnosticData', type: REG_DWORD, data: '1'}
   - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\System', value: 'EnableActivityFeed', type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\System', value: 'PublishUserActivities', type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\System', value: 'UploadUserActivities', type: REG_DWORD, data: '0'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat', value: 'DisableInventory', type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat', value: 'DisableUAR', type: REG_DWORD, data: '1'}
   - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\MdmCommon\SettingValues', value: 'LocationSyncEnabled', type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'AllowOnlineTips', type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\FindMyDevice', value: 'AllowFindMyDevice', type: REG_DWORD, data: '0'}
@@ -774,6 +791,9 @@ actions:
   - !cmd: {command: 'fsutil behavior set encryptpagingfile 0', wait: true, runas: trustedInstaller}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\FileSystem', value: 'LongPathsEnabled', type: REG_DWORD, data: '1'}
 
+  - !writeStatus: {status: 'Disabling Reserved Storage'}
+  - !powerShell: {command: '.\ReservedStorage.ps1 -Mode Apply', exeDir: true, wait: true, errorAction: Ignore}
+
   - !writeStatus: {status: 'Blocking App Reinstalls'}
   - !registryValue: {path: 'HKLM\Software\Microsoft\Windows\CurrentVersion\Communications', value: 'ConfigureChatAutoInstall', type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager', value: 'SilentInstalledAppsEnabled', type: REG_DWORD, data: '0'}
@@ -829,7 +849,7 @@ actions:
   - !run: {exe: 'bcdedit.exe', args: '/set bootmenupolicy legacy',    wait: true, showOutput: false, showError: false}
   - !run: {exe: 'bcdedit.exe', args: '/timeout 10',                   wait: true, showOutput: false, showError: false}
   - !cmd: {command: 'label %SystemDrive% XOS', wait: true, runas: trustedInstaller}
-  - !run: {exe: 'bcdedit.exe', args: '/set {current} description "XOS-Playbook-V0.812"', wait: true, showOutput: false, showError: false}
+  - !run: {exe: 'bcdedit.exe', args: '/set {current} description "XOS-Playbook-V0.819"', wait: true, showOutput: false, showError: false}
 
   - !writeStatus: {status: 'Disabling DMA Remapping'}
   - !powerShell:
@@ -1403,6 +1423,7 @@ actions:
   - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value: 'DisallowRun', type: REG_DWORD, data: 1}
   - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\DeviceCensus.exe',        value: 'Debugger', type: REG_SZ, data: '%SYSTEMROOT%\System32\taskkill.exe'}
   - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\default\Connectivity\DisableCrossDeviceResume',              value: 'value',              type: REG_DWORD, data: '1'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell\ShellUIHosts\CrossDeviceResumeHost', value: 'ProcessPath',        type: REG_SZ,    data: '%SystemRoot%\system32\ShellHost.exe'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Policies\Microsoft\FeatureManagement\Overrides',                        value: '1387020943',         type: REG_DWORD, data: '0'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\FeatureManagement\Overrides\8\1387020943', value: 'EnabledState',        type: REG_DWORD, data: '1'}
   - !registryValue: {path: 'HKLM\SYSTEM\CurrentControlSet\Control\FeatureManagement\Overrides\8\1387020943', value: 'EnabledStateOptions', type: REG_DWORD, data: '0'}
